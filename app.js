@@ -279,7 +279,9 @@ function lockPostcode() {
     }
 
     pc.lockedBy = team;
-    TEAMS[team].points += 5; // Bonus for locking
+    // Locking REPLACES claim points: 3 total instead of 2 claim + bonus
+    // So add 1 more point (already had 2 from claiming)
+    TEAMS[team].points += 1;
 
     // Kick out other teams
     const removedClaims = [];
@@ -471,7 +473,7 @@ function undoLastAction() {
     } else if (action.type === 'lock') {
         // Unlock
         pc.lockedBy = null;
-        TEAMS[action.team].points -= 5;
+        TEAMS[action.team].points -= 1; // Only 1 point was added for locking
 
         // Restore removed claims
         if (action.removedClaims) {
