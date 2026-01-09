@@ -236,6 +236,12 @@ function claimPostcode() {
         return;
     }
 
+    // Check if team already claimed this postcode
+    if (pc.claims.includes(team)) {
+        setStatus(`${TEAMS[team].name} already claimed ${postcode}`);
+        return;
+    }
+
     // Add claim
     pc.claims.push(team);
     pc.claimTimes[team] = Date.now(); // Record time of claim
