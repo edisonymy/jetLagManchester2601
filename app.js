@@ -3,9 +3,9 @@
 
 // Team configuration
 const TEAMS = {
-    graphene: { name: 'Graphene', color: '#0a84ff', claims: 0, points: 0 },
-    vimto: { name: 'Vimto', color: '#ff375f', claims: 0, points: 0 },
-    program: { name: 'Program', color: '#30d158', claims: 0, points: 0 }
+    graphene: { name: 'Graphene', color: '#70736A', claims: 0, points: 0 },
+    vimto: { name: 'Vimto', color: '#73015D', claims: 0, points: 0 },
+    program: { name: 'Program', color: '#425E95', claims: 0, points: 0 }
 };
 
 // Game state
