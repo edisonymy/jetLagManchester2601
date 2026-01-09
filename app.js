@@ -43,13 +43,14 @@ function initMap() {
 }
 
 // Create or update SVG striped pattern for contested zones
-function createOrUpdateStripePattern(postcode, color1, color2) {
+// colors is an array of team colors (2 or 3)
+function createOrUpdateStripePattern(postcode, colors) {
     const patternId = 'stripe-' + postcode;
+    const svgNS = 'http://www.w3.org/2000/svg';
 
     // Check if SVG defs container exists, create if not
     let svgDefs = document.getElementById('svg-defs');
     if (!svgDefs) {
-        const svgNS = 'http://www.w3.org/2000/svg';
         const svgContainer = document.createElementNS(svgNS, 'svg');
         svgContainer.setAttribute('width', '0');
         svgContainer.setAttribute('height', '0');
@@ -67,32 +68,28 @@ function createOrUpdateStripePattern(postcode, color1, color2) {
     if (existing) existing.remove();
 
     // Create new striped pattern
-    const svgNS = 'http://www.w3.org/2000/svg';
+    const numColors = colors.length;
+    const stripeWidth = 8;  // Width of each color stripe
+    const patternWidth = stripeWidth * numColors;
+
     const pattern = document.createElementNS(svgNS, 'pattern');
     pattern.setAttribute('id', patternId);
     pattern.setAttribute('patternUnits', 'userSpaceOnUse');
-    pattern.setAttribute('width', '12');
-    pattern.setAttribute('height', '12');
+    pattern.setAttribute('width', patternWidth.toString());
+    pattern.setAttribute('height', patternWidth.toString());
     pattern.setAttribute('patternTransform', 'rotate(45)');
 
-    // Color 1 stripe
-    const rect1 = document.createElementNS(svgNS, 'rect');
-    rect1.setAttribute('x', '0');
-    rect1.setAttribute('y', '0');
-    rect1.setAttribute('width', '6');
-    rect1.setAttribute('height', '12');
-    rect1.setAttribute('fill', color1);
+    // Create a stripe for each team color
+    colors.forEach((color, i) => {
+        const rect = document.createElementNS(svgNS, 'rect');
+        rect.setAttribute('x', (i * stripeWidth).toString());
+        rect.setAttribute('y', '0');
+        rect.setAttribute('width', stripeWidth.toString());
+        rect.setAttribute('height', patternWidth.toString());
+        rect.setAttribute('fill', color);
+        pattern.appendChild(rect);
+    });
 
-    // Color 2 stripe
-    const rect2 = document.createElementNS(svgNS, 'rect');
-    rect2.setAttribute('x', '6');
-    rect2.setAttribute('y', '0');
-    rect2.setAttribute('width', '6');
-    rect2.setAttribute('height', '12');
-    rect2.setAttribute('fill', color2);
-
-    pattern.appendChild(rect1);
-    pattern.appendChild(rect2);
     svgDefs.appendChild(pattern);
 }
 
@@ -351,21 +348,25 @@ function updatePolygon(postcode) {
             });
 
             // ENHANCED CONTESTED VISUALIZATION - Leaflet compatible
-            // Create a clear "battle zone" appearance that's unmistakable
-            const leadColor = TEAMS[sortedTeams[0]].color;
-            const secondColor = TEAMS[sortedTeams[1]].color;
+            // Create a clear "battle zone" appearance with team color stripes
+            const contestingColors = uniqueTeams.map(t => TEAMS[t].color);
 
-            // BRIGHT WARNING FILL - unmistakable contested appearance
-            // Use bright gold/orange mix to make it IMPOSSIBLE to miss
-            fillColor = '#ffa500';      // Bright orange/gold - universal "warning" color
-            strokeColor = '#ffff00';    // Bright yellow border
-            fillOpacity = 0.6;          // Good visibility  
-            weight = 3;                 // Thinner border for cleaner look
-            dashArray = '8, 4';         // Subtle dash pattern
+            // Create striped pattern with all team colors
+            createOrUpdateStripePattern(postcode, contestingColors);
+
+            // Use first team color as fallback fill (pattern applied after render)
+            fillColor = contestingColors[0];
+            strokeColor = '#ffff00';    // Bright yellow border for visibility
+            fillOpacity = 0.7;          // Good visibility  
+            weight = 3;                 // Clean border
+            dashArray = '8, 4';         // Dashed to show instability
 
             // Show which teams are contesting: e.g. "⚔️M1 G/V⚔️"
             const teamInitials = uniqueTeams.map(t => TEAMS[t].name.charAt(0)).join('/');
             labelText = `⚔️${postcode} ${teamInitials}⚔️`;
+
+            // Mark for pattern application after setStyle
+            pc._usePattern = postcode;
         } else {
             // Single team claimed - transparent fill
             fillColor = TEAMS[uniqueTeams[0]].color;
@@ -390,16 +391,26 @@ function updatePolygon(postcode) {
             dashArray
         });
 
-        // Add/remove contested-polygon class for pulsing animation
-        const container = polygon.getElement();
-        if (container) {
-            if (pc.claims.length > 1 && [...new Set(pc.claims)].length > 1 && !pc.lockedBy) {
-                container.classList.add('contested-polygon');
+        // Get the SVG path element
+        const pathElement = polygon.getElement();
+        if (pathElement) {
+            // Apply SVG pattern for contested zones
+            if (pc._usePattern) {
+                const patternUrl = 'url(#stripe-' + pc._usePattern + ')';
+                pathElement.setAttribute('fill', patternUrl);
+                pathElement.style.fillOpacity = fillOpacity;
+                pathElement.classList.add('contested-polygon');
             } else {
-                container.classList.remove('contested-polygon');
+                // Restore normal fill - set it explicitly to the fillColor
+                pathElement.setAttribute('fill', fillColor);
+                pathElement.style.fillOpacity = fillOpacity;
+                pathElement.classList.remove('contested-polygon');
             }
         }
     });
+
+    // Clear the pattern flag
+    delete pc._usePattern;
 
     // Update Label Content if marker exists
     // We need to find the marker for this postcode. Leaflet doesn't link them easily back.
