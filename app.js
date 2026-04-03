@@ -453,8 +453,16 @@ function updatePolygon(postcode) {
 function updateScoreboard() {
     for (const [id, team] of Object.entries(TEAMS)) {
         document.getElementById(`${id}-claims`).textContent = team.claims;
-        document.getElementById(`${id}-points`).textContent = team.points;
+        const deductionInput = document.getElementById(`${id}-deduction`);
+        const deduction = deductionInput ? (parseInt(deductionInput.value) || 0) : 0;
+        document.getElementById(`${id}-points`).textContent = team.points - deduction;
     }
+}
+
+function handleDeductionChange(team) {
+    updateScoreboard();
+    const deduction = parseInt(document.getElementById(`${team}-deduction`).value) || 0;
+    logEvent(`Updated ${TEAMS[team].name} deduction: ${deduction}`);
 }
 
 // Log an event
@@ -514,9 +522,11 @@ function resetGame() {
     if (!confirm('Reset all claims and scores?')) return;
 
     // Reset teams
-    for (const team of Object.values(TEAMS)) {
+    for (const [id, team] of Object.entries(TEAMS)) {
         team.claims = 0;
         team.points = 0;
+        const deductionInput = document.getElementById(`${id}-deduction`);
+        if (deductionInput) deductionInput.value = 0;
     }
 
     // Reset postcodes

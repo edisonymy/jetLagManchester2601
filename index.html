@@ -219,6 +219,35 @@
             color: var(--text-secondary);
         }
 
+        .deduction-input {
+            width: 32px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            text-align: right;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 0 4px;
+        }
+
+        .deduction-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .deduction-input::-webkit-outer-spin-button,
+        .deduction-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .deduction-input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
         /* Controls */
         .control-row {
             display: flex;
@@ -463,6 +492,10 @@
                             <div class="stat-label">Claims</div>
                         </div>
                         <div class="stat">
+                            <input type="number" class="deduction-input" id="graphene-deduction" value="0" min="0" onchange="handleDeductionChange('graphene')">
+                            <div class="stat-label">Deduct</div>
+                        </div>
+                        <div class="stat">
                             <div class="stat-value" id="graphene-points">0</div>
                             <div class="stat-label">Points</div>
                         </div>
@@ -477,6 +510,10 @@
                             <div class="stat-label">Claims</div>
                         </div>
                         <div class="stat">
+                            <input type="number" class="deduction-input" id="vimto-deduction" value="0" min="0" onchange="handleDeductionChange('vimto')">
+                            <div class="stat-label">Deduct</div>
+                        </div>
+                        <div class="stat">
                             <div class="stat-value" id="vimto-points">0</div>
                             <div class="stat-label">Points</div>
                         </div>
@@ -489,6 +526,10 @@
                         <div class="stat">
                             <div class="stat-value" id="program-claims">0</div>
                             <div class="stat-label">Claims</div>
+                        </div>
+                        <div class="stat">
+                            <input type="number" class="deduction-input" id="program-deduction" value="0" min="0" onchange="handleDeductionChange('program')">
+                            <div class="stat-label">Deduct</div>
                         </div>
                         <div class="stat">
                             <div class="stat-value" id="program-points">0</div>
